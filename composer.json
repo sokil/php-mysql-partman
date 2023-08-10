@@ -1,0 +1,37 @@
+{
+    "name": "sokil/php-mysql-partman",
+    "description": "MySQL Partition Manager",
+    "type": "library",
+    "require": {
+        "php": "^8.2",
+        "psr/clock": "^1.0"
+    },
+    "require-dev": {
+        "ext-pdo": "*",
+        "phpunit/phpunit": "^10.3.1",
+        "vimeo/psalm": "^5.14.1",
+        "squizlabs/php_codesniffer": "*",
+        "doctrine/dbal": "^3.6"
+    },
+    "suggest": {
+        "ext-pdo": "For support of PDO connections to MySql",
+        "doctrine/dbal": "For support of Doctrine DBAL connections to MySql"
+    },
+    "autoload": {
+        "psr-4": {
+            "Sokil\\Mysql\\PartitionManager\\": ["src/"]
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Sokil\\Mysql\\PartitionManager\\": ["tests/"]
+        }
+    },
+    "scripts" : {
+        "test": "./vendor/bin/phpunit ./tests",
+        "cover": "./vendor/bin/phpunit --coverage-text ./tests",
+        "cover-ci": "./vendor/bin/phpunit --verbose ./tests --coverage-text --colors=never --log-junit report.xml",
+        "check-style": "./vendor/bin/phpcs",
+        "psalm": "./vendor/bin/psalm --show-info=true"
+    }
+}
