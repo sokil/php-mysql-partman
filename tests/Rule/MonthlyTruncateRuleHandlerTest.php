@@ -7,8 +7,8 @@ namespace Sokil\Mysql\PartitionManager\Rule;
 use Psr\Clock\ClockInterface;
 use Sokil\Mysql\PartitionManager\AbstractTestCase;
 use Sokil\Mysql\PartitionManager\FixtureLoader\TruncateMonthlyFixtureLoader;
-use Sokil\Mysql\PartitionManager\Rule\Rotate\RotatePartitionRule;
-use Sokil\Mysql\PartitionManager\Rule\Rotate\RotatePartitionRuleHandler;
+use Sokil\Mysql\PartitionManager\Rule\Rotate\RotateRule;
+use Sokil\Mysql\PartitionManager\Rule\Rotate\RotateRuleHandler;
 use Sokil\Mysql\PartitionManager\Rule\Truncate\TruncateRuleHandler;
 use Sokil\Mysql\PartitionManager\PartitionManager;
 use Sokil\Mysql\PartitionManager\Rule\Truncate\TruncateRule;
@@ -65,7 +65,7 @@ class MonthlyTruncateRuleHandlerTest extends AbstractTestCase
         $ruleRunner = new RuleRunner(
             [
                 TruncateRule::class => new TruncateRuleHandler($partitionManager),
-                RotatePartitionRule::class => new RotatePartitionRuleHandler($partitionManager),
+                RotateRule::class => new RotateRuleHandler($partitionManager),
             ],
             $clock,
         );

@@ -7,9 +7,9 @@ namespace Sokil\Mysql\PartitionManager\Rule;
 use Psr\Clock\ClockInterface;
 use Sokil\Mysql\PartitionManager\AbstractTestCase;
 use Sokil\Mysql\PartitionManager\FixtureLoader\RotateFixtureLoader;
-use Sokil\Mysql\PartitionManager\Rule\Rotate\RotatePartitionRuleHandler;
+use Sokil\Mysql\PartitionManager\Rule\Rotate\RotateRuleHandler;
 use Sokil\Mysql\PartitionManager\PartitionManager;
-use Sokil\Mysql\PartitionManager\Rule\Rotate\RotatePartitionRule;
+use Sokil\Mysql\PartitionManager\Rule\Rotate\RotateRule;
 use Sokil\Mysql\PartitionManager\Rule\Truncate\TruncateRule;
 use Sokil\Mysql\PartitionManager\Rule\Truncate\TruncateRuleHandler;
 use Sokil\Mysql\PartitionManager\RuleRunner;
@@ -65,7 +65,7 @@ class RotatePartitionMonthlyTableTest extends AbstractTestCase
         $connection = $this->getConnection();
         $runAt = new RunAt('2023-' . $currentMonth . '-10 00:00:00');
 
-        $rule = new RotatePartitionRule(
+        $rule = new RotateRule(
             $this->tableName,
             $runAt,
             RotateRange::Months,
@@ -81,7 +81,7 @@ class RotatePartitionMonthlyTableTest extends AbstractTestCase
         $ruleRunner = new RuleRunner(
             [
                 TruncateRule::class => new TruncateRuleHandler($partitionManager),
-                RotatePartitionRule::class => new RotatePartitionRuleHandler($partitionManager),
+                RotateRule::class => new RotateRuleHandler($partitionManager),
             ],
             $clock,
         );

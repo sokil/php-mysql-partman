@@ -22,7 +22,7 @@ class TruncateRuleHandler implements RuleHandlerInterface
      */
     public function handle(\DateTimeImmutable $now, AbstractRule $rule): RuleHandleResult
     {
-        $remainPartitionsCount = $rule->storeCount;
+        $remainPartitionsCount = $rule->remainPartitionsCount;
 
         if ($rule->truncatePeriod === TruncatePeriod::Month) {
             if ($remainPartitionsCount > 10) {

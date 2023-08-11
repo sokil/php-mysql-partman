@@ -13,12 +13,12 @@ class TruncateRule extends AbstractRule
     public function __construct(
         string $tableName,
         RunAt $runAt,
-        public readonly int $storeCount,
+        public readonly int $remainPartitionsCount,
         public readonly TruncatePeriod $truncatePeriod,
     ) {
         parent::__construct($tableName, $runAt);
 
-        if ($this->storeCount <= 0) {
+        if ($this->remainPartitionsCount <= 0) {
             throw new \InvalidArgumentException('Store count must be positive int');
         }
     }

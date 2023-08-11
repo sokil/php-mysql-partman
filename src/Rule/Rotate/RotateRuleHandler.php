@@ -10,7 +10,7 @@ use Sokil\Mysql\PartitionManager\Rule\AbstractRule;
 use Sokil\Mysql\PartitionManager\Rule\RuleHandleResult;
 use Sokil\Mysql\PartitionManager\ValueObject\Partition;
 
-class RotatePartitionRuleHandler implements RuleHandlerInterface
+class RotateRuleHandler implements RuleHandlerInterface
 {
     public function __construct(
         private readonly PartitionManager $partitionManager
@@ -19,7 +19,7 @@ class RotatePartitionRuleHandler implements RuleHandlerInterface
 
     public function handle(\DateTimeImmutable $now, AbstractRule $rule): RuleHandleResult
     {
-        if (!$rule instanceof RotatePartitionRule) {
+        if (!$rule instanceof RotateRule) {
             throw new \InvalidArgumentException('Invalid rule passed');
         }
 

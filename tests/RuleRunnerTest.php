@@ -6,8 +6,8 @@ namespace Sokil\Mysql\PartitionManager;
 
 use Psr\Clock\ClockInterface;
 use Sokil\Mysql\PartitionManager\FixtureLoader\RotateFixtureLoader;
-use Sokil\Mysql\PartitionManager\Rule\Rotate\RotatePartitionRuleHandler;
-use Sokil\Mysql\PartitionManager\Rule\Rotate\RotatePartitionRule;
+use Sokil\Mysql\PartitionManager\Rule\Rotate\RotateRuleHandler;
+use Sokil\Mysql\PartitionManager\Rule\Rotate\RotateRule;
 use Sokil\Mysql\PartitionManager\Rule\Truncate\TruncateRule;
 use Sokil\Mysql\PartitionManager\Rule\Truncate\TruncateRuleHandler;
 use Sokil\Mysql\PartitionManager\ValueObject\RotateRange;
@@ -53,7 +53,7 @@ class RuleRunnerTest extends AbstractTestCase
         $ruleRunner = new RuleRunner(
             [
                 TruncateRule::class => new TruncateRuleHandler($partitionsManipulator),
-                RotatePartitionRule::class => new RotatePartitionRuleHandler($partitionsManipulator),
+                RotateRule::class => new RotateRuleHandler($partitionsManipulator),
             ],
             $clock,
         );
@@ -87,7 +87,7 @@ class RuleRunnerTest extends AbstractTestCase
             'dropOldPrevRemainExistedNext' => [
                 'currentDateTime' => new \DateTimeImmutable('2023-05-01 05:00:00'),
                 'rules' => [
-                    new RotatePartitionRule(
+                    new RotateRule(
                         self::TABLE1_NAME,
                         new RunAt('2023-05-01 05:00:00'),
                         RotateRange::Months,
@@ -114,7 +114,7 @@ class RuleRunnerTest extends AbstractTestCase
             'dropOldPrevAddNewNext' => [
                 'currentDateTime' => new \DateTimeImmutable('2023-05-01 05:00:00'),
                 'rules' => [
-                    new RotatePartitionRule(
+                    new RotateRule(
                         self::TABLE2_NAME,
                         new RunAt('2023-05-01 05:00:00'),
                         RotateRange::Months,
@@ -141,14 +141,14 @@ class RuleRunnerTest extends AbstractTestCase
             'handleTwoRules' => [
                 'currentDateTime' => new \DateTimeImmutable('2023-05-01 05:00:00'),
                 'rules' => [
-                    new RotatePartitionRule(
+                    new RotateRule(
                         self::TABLE1_NAME,
                         new RunAt('2023-05-01 05:00:00'),
                         RotateRange::Months,
                         3,
                         2,
                     ),
-                    new RotatePartitionRule(
+                    new RotateRule(
                         self::TABLE2_NAME,
                         new RunAt('2023-05-01 05:00:00'),
                         RotateRange::Months,
@@ -188,7 +188,7 @@ class RuleRunnerTest extends AbstractTestCase
             'skipNotPlannedToHandle' => [
                 'currentDateTime' => new \DateTimeImmutable('2023-05-01 05:00:00'),
                 'rules' => [
-                    new RotatePartitionRule(
+                    new RotateRule(
                         self::TABLE2_NAME,
                         new RunAt('2024-05-01 06:00:00'),
                         RotateRange::Months,
@@ -201,14 +201,14 @@ class RuleRunnerTest extends AbstractTestCase
             'handleTwoRulesWhenOneNotPlannedToHandle' => [
                 'currentDateTime' => new \DateTimeImmutable('2023-05-01 05:00:00'),
                 'rules' => [
-                    new RotatePartitionRule(
+                    new RotateRule(
                         self::TABLE1_NAME,
                         new RunAt('2023-05-01 05:00:00'),
                         RotateRange::Months,
                         3,
                         2,
                     ),
-                    new RotatePartitionRule(
+                    new RotateRule(
                         self::TABLE2_NAME,
                         new RunAt('2024-05-01 06:00:00'),
                         RotateRange::Months,

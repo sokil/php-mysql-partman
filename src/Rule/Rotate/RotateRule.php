@@ -8,7 +8,7 @@ use Sokil\Mysql\PartitionManager\Rule\AbstractRule;
 use Sokil\Mysql\PartitionManager\ValueObject\RotateRange;
 use Sokil\Mysql\PartitionManager\ValueObject\RunAt;
 
-class RotatePartitionRule extends AbstractRule
+class RotateRule extends AbstractRule
 {
     public function __construct(
         string $tableName,
