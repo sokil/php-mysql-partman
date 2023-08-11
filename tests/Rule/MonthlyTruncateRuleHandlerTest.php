@@ -35,13 +35,13 @@ class MonthlyTruncateRuleHandlerTest extends AbstractTestCase
     public function testCheckPartitionData(): void
     {
         $tableName = $this->tableName;
-        $storage = $this->getConnection();
+        $connection = $this->getConnection();
 
         for ($i = 1; $i <= 12; $i++) {
             $partitionName = sprintf('p%02d', $i);
             $sql = "SELECT * FROM `{$tableName}` PARTITION ({$partitionName})";
 
-            $rowsFromPartition = $storage->fetchAll($sql);
+            $rowsFromPartition = $connection->fetchAll($sql);
             $this->assertCount(1, $rowsFromPartition);
         }
     }

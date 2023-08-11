@@ -11,7 +11,7 @@ use Sokil\Mysql\PartitionManager\ValueObject\Partition;
 class PartitionManager
 {
     public function __construct(
-        private readonly ConnectionInterface $storage,
+        private readonly ConnectionInterface $connection,
     ) {
     }
 
@@ -23,7 +23,7 @@ class PartitionManager
     public function getPartitions(string $tableName): array
     {
         $result = [];
-        $selectDbResult = $this->storage->fetchOne('SELECT database() as db');
+        $selectDbResult = $this->connection->fetchOne('SELECT database() as db');
 
         if (!empty($selectDbResult) && !empty($selectDbResult['db'])) {
             $databaseName = (string)$selectDbResult['db'];
@@ -36,7 +36,7 @@ class PartitionManager
                 WHERE TABLE_NAME = :tableName AND TABLE_SCHEMA = :tableSchema
                 ORDER BY PARTITION_DESCRIPTION";
 
-        $rows = $this->storage->fetchAll($sql, [
+        $rows = $this->connection->fetchAll($sql, [
             ':tableName' => $tableName,
             ':tableSchema' => $databaseName,
         ]);
@@ -72,10 +72,10 @@ class PartitionManager
         $swapTableName = $tableName . "_exchange_partition_tmp";
 
         $createTableSql = sprintf('CREATE TABLE `%s` LIKE `%s`', $swapTableName, $tableName);
-        $this->storage->execute($createTableSql);
+        $this->connection->execute($createTableSql);
 
         $alterTableSql = sprintf('ALTER TABLE `%s` REMOVE PARTITIONING', $swapTableName);
-        $this->storage->execute($alterTableSql);
+        $this->connection->execute($alterTableSql);
 
         $exchangeSql = sprintf(
             'ALTER TABLE `%s` EXCHANGE PARTITION %s WITH TABLE `%s`',
@@ -83,10 +83,10 @@ class PartitionManager
             $partition->name,
             $swapTableName
         );
-        $this->storage->execute($exchangeSql);
+        $this->connection->execute($exchangeSql);
 
         $dropTableSql = sprintf('DROP TABLE `%s`', $swapTableName);
-        $this->storage->execute($dropTableSql);
+        $this->connection->execute($dropTableSql);
     }
 
     /**
@@ -107,7 +107,7 @@ class PartitionManager
 
         if ($conditions) {
             $sql = sprintf('ALTER TABLE `%s` ADD PARTITION (%s)', $tableName, implode(',', $conditions));
-            $this->storage->execute($sql);
+            $this->connection->execute($sql);
         }
 
         return count($partitions);
@@ -121,7 +121,7 @@ class PartitionManager
     {
         foreach ($partitions as $partition) {
             $sql = sprintf('ALTER TABLE `%s` DROP PARTITION %s', $tableName, $partition->name);
-            $this->storage->execute($sql);
+            $this->connection->execute($sql);
         }
 
         return count($partitions);
