@@ -30,7 +30,7 @@ class TruncateRuleHandler implements RuleHandlerInterface
             }
         }
 
-        $partitionsToStore = [];
+        $partitionsToRemain = [];
         $partitionsToTruncate = [];
 
         $partitions = $this->partitionManager->getPartitions($rule->tableName);
@@ -59,14 +59,14 @@ class TruncateRuleHandler implements RuleHandlerInterface
          * @var \DateTimeImmutable $item
          */
         foreach ($period as $item) {
-            $partitionsToStore[] = intval($item->format($truncatePeriodDateFormat)) + 1;
+            $partitionsToRemain[] = intval($item->format($truncatePeriodDateFormat)) + 1;
         }
 
         $currentPartitionValue = intval($now->format($truncatePeriodDateFormat)) + 1;
 
         foreach ($partitions as $partition) {
             if (
-                !in_array($partition->lessThenTimestamp, $partitionsToStore)
+                !in_array($partition->lessThenTimestamp, $partitionsToRemain)
                 && $partition->lessThenTimestamp !== $currentPartitionValue
             ) {
                 $partitionsToTruncate[] = $partition;
