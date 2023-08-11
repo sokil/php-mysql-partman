@@ -89,7 +89,7 @@ class MonthlyTruncateRuleHandlerTest extends AbstractTestCase
                 $expectedCount,
                 $rowsFromPartition,
                 sprintf(
-                    'Partition p%s assert failed. Actual value: %s, expected: %s',
+                    'Partition %s assert failed. Actual value: %s, expected: %s',
                     $partitionName,
                     count($rowsFromPartition),
                     $expectedCount,
