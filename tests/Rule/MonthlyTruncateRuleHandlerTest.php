@@ -53,7 +53,12 @@ class MonthlyTruncateRuleHandlerTest extends AbstractTestCase
         $connection = $this->getConnection();
         $runAt = new RunAt('2023-' . $currentMonth . '-10 00:00:00');
 
-        $rule = new TruncateRule($this->tableName, $runAt, $storeCount, TruncatePeriod::Month);
+        $rule = new TruncateRule(
+            $this->tableName,
+            $runAt,
+            $storeCount,
+            TruncatePeriod::Month,
+        );
 
         $partitionManager = new PartitionManager($connection);
 
@@ -80,20 +85,16 @@ class MonthlyTruncateRuleHandlerTest extends AbstractTestCase
         $this->assertEquals(count($truncated), $result->truncatedPartitions);
 
         for ($i = 1; $i <= 12; $i++) {
-            $expectedCount = in_array($i, $truncated) ? 0 : 1;
-            $partitionName = sprintf('p%02d', $i);
-            $sql = "SELECT * FROM `{$this->tableName}` PARTITION ({$partitionName})";
+            $expectedRowsCountFromPartition = in_array($i, $truncated) ? 0 : 1;
 
-            $rowsFromPartition = $connection->fetchAll($sql);
-            $this->assertCount(
-                $expectedCount,
-                $rowsFromPartition,
-                sprintf(
-                    'Partition %s assert failed. Actual value: %s, expected: %s',
-                    $partitionName,
-                    count($rowsFromPartition),
-                    $expectedCount,
-                ),
+            $partitionName = sprintf('p%02d', $i);
+            $sql = "SELECT count(1) c FROM `{$this->tableName}` PARTITION ({$partitionName})";
+
+            $actualRowsCountFromPartition = $connection->fetchOne($sql)['c'];
+
+            $this->assertTrue(
+                $expectedRowsCountFromPartition === $actualRowsCountFromPartition,
+                'Partition %s contains unexpected count of rows',
             );
         }
     }
@@ -110,6 +111,11 @@ class MonthlyTruncateRuleHandlerTest extends AbstractTestCase
                 'currentMonth' => 5,
                 'storeCount' => 5,
                 'truncated' => [6, 7, 8, 9, 10, 11],
+            ],
+            [
+                'currentMonth' => 5,
+                'storeCount' => 10,
+                'truncated' => [6],
             ],
         ];
     }
