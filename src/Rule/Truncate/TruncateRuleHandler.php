@@ -26,7 +26,7 @@ class TruncateRuleHandler implements RuleHandlerInterface
 
         if ($rule->truncatePeriod === TruncatePeriod::Month) {
             if ($remainPartitionsCount > 10) {
-                throw new \OutOfRangeException('Store count must be in range between 1 and 10');
+                throw new \OutOfRangeException('Remained partitions count for monthly partitions must be in range between 1 and 10');
             }
         }
 
