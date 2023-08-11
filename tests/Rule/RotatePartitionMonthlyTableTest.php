@@ -10,8 +10,6 @@ use Sokil\Mysql\PartitionManager\FixtureLoader\RotateFixtureLoader;
 use Sokil\Mysql\PartitionManager\Rule\Rotate\RotateRuleHandler;
 use Sokil\Mysql\PartitionManager\PartitionManager;
 use Sokil\Mysql\PartitionManager\Rule\Rotate\RotateRule;
-use Sokil\Mysql\PartitionManager\Rule\Truncate\TruncateRule;
-use Sokil\Mysql\PartitionManager\Rule\Truncate\TruncateRuleHandler;
 use Sokil\Mysql\PartitionManager\RuleRunner;
 use Sokil\Mysql\PartitionManager\ValueObject\RotateRange;
 use Sokil\Mysql\PartitionManager\ValueObject\RunAt;
@@ -80,7 +78,6 @@ class RotatePartitionMonthlyTableTest extends AbstractTestCase
 
         $ruleRunner = new RuleRunner(
             [
-                TruncateRule::class => new TruncateRuleHandler($partitionManager),
                 RotateRule::class => new RotateRuleHandler($partitionManager),
             ],
             $clock,
