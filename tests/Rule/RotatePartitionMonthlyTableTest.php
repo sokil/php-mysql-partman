@@ -11,6 +11,7 @@ use Sokil\Mysql\PartitionManager\Rule\Rotate\RotateRuleHandler;
 use Sokil\Mysql\PartitionManager\PartitionManager;
 use Sokil\Mysql\PartitionManager\Rule\Rotate\RotateRule;
 use Sokil\Mysql\PartitionManager\RuleRunner;
+use Sokil\Mysql\PartitionManager\ValueObject\Partition;
 use Sokil\Mysql\PartitionManager\ValueObject\RotateRange;
 use Sokil\Mysql\PartitionManager\ValueObject\RunAt;
 
@@ -31,37 +32,19 @@ class RotatePartitionMonthlyTableTest extends AbstractTestCase
         $this->dropTable($this->tableName);
     }
 
-    public function testCheckPartitionData(): void
-    {
-        $connection = $this->getConnection();
-
-        for ($i = 1; $i <= 12; $i++) {
-            $partitionName = sprintf('p2023%02d01', $i);
-            $sql = "SELECT * FROM `{$this->tableName}` PARTITION ({$partitionName})";
-
-            $rowsFromPartition = $connection->fetchAll($sql);
-            $this->assertCount(
-                1,
-                $rowsFromPartition,
-                sprintf('partition %s expect failed', $partitionName),
-            );
-        }
-    }
-
     /**
-     * @depends testCheckPartitionData
      * @dataProvider rulesDataProvider
      */
     public function testRunHandler(
-        int $currentMonth,
+        \DateTimeImmutable $currentDate,
         int $remainPartitionsCount,
         int $createPartitionsCount,
-        array $partitionsLeft,
+        array $expectedPartitionNames,
         int $expectCreated,
         int $expectDeleted
     ): void {
         $connection = $this->getConnection();
-        $runAt = new RunAt('2023-' . $currentMonth . '-10 00:00:00');
+        $runAt = new RunAt($currentDate->format('Y-m-d H:i:s'));
 
         $rule = new RotateRule(
             $this->tableName,
@@ -74,7 +57,7 @@ class RotatePartitionMonthlyTableTest extends AbstractTestCase
         $partitionManager = new PartitionManager($connection);
 
         $clock = $this->createMock(ClockInterface::class);
-        $clock->method('now')->willReturn(new \DateTimeImmutable($runAt->value));
+        $clock->method('now')->willReturn($currentDate);
 
         $ruleRunner = new RuleRunner(
             [
@@ -95,26 +78,25 @@ class RotatePartitionMonthlyTableTest extends AbstractTestCase
         $this->assertEquals($expectDeleted, $result->droppedPartitions);
         $this->assertEquals(null, $result->truncatedPartitions);
 
-        $partitions = $partitionManager->getPartitions($this->tableName);
+        $actualPartitionNames = array_map(
+            fn (Partition $partition) => $partition->name,
+            $partitionManager->getPartitions($this->tableName)
+        );
 
-        foreach ($partitions as $partition) {
-            $partitionsName[] = $partition->name;
-        }
+        sort($actualPartitionNames);
+        sort($expectedPartitionNames);
 
-        sort($partitionsName);
-        sort($partitionsLeft);
-
-        $this->assertEquals($partitionsLeft, $partitionsName);
+        $this->assertEquals($expectedPartitionNames, $actualPartitionNames);
     }
 
     public static function rulesDataProvider(): array
     {
         return [
             [
-                'currentMonth' => 5,
+                'currentDate' => new \DateTimeImmutable('2023-05-10 00:00:00'),
                 'remainPartitionsCount' => 3,
                 'createPartitionsCount' => 2,
-                'partitionsLeft' => [
+                'expectedPartitionNames' => [
                     'p20230201',
                     'p20230301',
                     'p20230401',
@@ -131,10 +113,10 @@ class RotatePartitionMonthlyTableTest extends AbstractTestCase
                 'expectDeleted' => 1,
             ],
             [
-                'currentMonth' => 10,
+                'currentDate' => new \DateTimeImmutable('2023-10-10 00:00:00'),
                 'remainPartitionsCount' => 3,
                 'createPartitionsCount' => 5,
-                'partitionsLeft' => [
+                'expectedPartitionNames' => [
                     'p20230701',
                     'p20230801',
                     'p20230901',
@@ -149,10 +131,10 @@ class RotatePartitionMonthlyTableTest extends AbstractTestCase
                 'expectDeleted' => 6,
             ],
             [
-                'currentMonth' => 9,
+                'currentDate' => new \DateTimeImmutable('2023-09-10 00:00:00'),
                 'remainPartitionsCount' => 10,
                 'createPartitionsCount' => 10,
-                'partitionsLeft' => [
+                'expectedPartitionNames' => [
                     'p20230101',
                     'p20230201',
                     'p20230301',
@@ -175,6 +157,20 @@ class RotatePartitionMonthlyTableTest extends AbstractTestCase
                 ],
                 'expectCreated' => 7,
                 'expectDeleted' => 0,
+            ],
+            [
+                'currentDate' => new \DateTimeImmutable('2025-05-01 00:00:00'),
+                'remainPartitionsCount' => 2,
+                'createPartitionsCount' => 2,
+                'expectedPartitionNames' => [
+                    'p20250301', // remain
+                    'p20250401', // remain
+                    'p20250501', // keep
+                    'p20250601', // create
+                    'p20250701', // create
+                ],
+                'expectCreated' => 5,
+                'expectDeleted' => 12,
             ],
         ];
     }

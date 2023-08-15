@@ -26,34 +26,52 @@ class RotateRuleHandler implements RuleHandlerInterface
         $minPartitionsDateTime = $now->modify("-{$rule->remainPartitionsCount} {$rule->range->value} midnight");
         $maxPartitionsDateTime = $now->modify("+{$rule->createPartitionsCount} {$rule->range->value} midnight");
 
-        $partitions = $this->partitionManager->getPartitions($rule->tableName);
+        $existingPartitions = $this->partitionManager->getPartitions($rule->tableName);
 
-        if (count($partitions) === 0) {
+        if (count($existingPartitions) === 0) {
             throw new \Exception('Partitions not found for table ' . $rule->tableName);
         }
 
         $partitionsToDrop = [];
-        $maxPartition = null;
+        $lastExistingPartition = null;
 
-        foreach ($partitions as $partition) {
-            if ($partition->lessThenTimestamp <= $minPartitionsDateTime->getTimestamp()) {
-                $partitionsToDrop[] = $partition;
+        foreach ($existingPartitions as $existingPartition) {
+            if ($existingPartition->lessThenTimestamp <= $minPartitionsDateTime->getTimestamp()) {
+                $partitionsToDrop[] = $existingPartition;
             }
 
-            if ($maxPartition === null || $partition->lessThenTimestamp > $maxPartition->lessThenTimestamp) {
-                $maxPartition = $partition;
+            if (
+                $lastExistingPartition === null ||
+                $existingPartition->lessThenTimestamp > $lastExistingPartition->lessThenTimestamp
+            ) {
+                $lastExistingPartition = $existingPartition;
             }
         }
 
-        $partitionNamePattern = $this->getPartitionNamePattern($maxPartition);
-        $maxPartitionValue = $maxPartition->lessThenTimestamp;
-        $maxExistingPartitionDateTime = \DateTime::createFromFormat('U', (string)$maxPartitionValue);
-        $partitionsToAdd = [];
+        $partitionNamePattern = $this->getPartitionNamePattern($lastExistingPartition);
 
-        while ($maxExistingPartitionDateTime <= $maxPartitionsDateTime) {
+        // partition to add start time
+        $partitionToAddTime = \DateTimeImmutable::createFromFormat(
+            'U',
+            (string)$lastExistingPartition->lessThenTimestamp
+        );
+
+        if ($partitionToAddTime < $minPartitionsDateTime) {
+            $partitionToAddTime = $minPartitionsDateTime;
+        }
+
+        // prepare partitions to add
+        $partitionsToAdd = [];
+        while ($partitionToAddTime <= $maxPartitionsDateTime) {
+            $partitionName = sprintf('p%s', $partitionToAddTime->format($partitionNamePattern));
+
+            $partitionToAddTime = $partitionToAddTime->modify(
+                sprintf('+1 %s', $rule->range->value)
+            );
+
             $partitionsToAdd[] = new Partition(
-                sprintf('p%s', $maxExistingPartitionDateTime->format($partitionNamePattern)),
-                $maxExistingPartitionDateTime->modify(sprintf('+1 %s', $rule->range->value))->getTimestamp(),
+                $partitionName,
+                $partitionToAddTime->getTimestamp(),
             );
         }
 
