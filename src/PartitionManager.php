@@ -37,8 +37,8 @@ class PartitionManager
                 ORDER BY PARTITION_DESCRIPTION";
 
         $rows = $this->connection->fetchAll($sql, [
-            ':tableName' => $tableName,
-            ':tableSchema' => $databaseName,
+            'tableName' => $tableName,
+            'tableSchema' => $databaseName,
         ]);
 
         if (empty($rows)) {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Sokil\Mysql\PartitionManager\Connection\Adapter\Pdo;
+namespace Sokil\Mysql\PartitionManager\Connection\Adapter\DoctrineDbal;
 
 use Doctrine\DBAL\Connection;
 use Sokil\Mysql\PartitionManager\Connection\Exception\ConnectionException;

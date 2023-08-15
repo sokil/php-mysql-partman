@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Sokil\Mysql\PartitionManager;
 
 use Doctrine\DBAL\DriverManager;
-use Sokil\Mysql\PartitionManager\Connection\Adapter\Pdo\DoctrineDbalConnection;
+use Sokil\Mysql\PartitionManager\Connection\Adapter\DoctrineDbal\DoctrineDbalConnection;
 use Sokil\Mysql\PartitionManager\Connection\Adapter\Pdo\PdoConnection;
 use Sokil\Mysql\PartitionManager\Connection\ConnectionInterface;
 use PHPUnit\Framework\TestCase;
