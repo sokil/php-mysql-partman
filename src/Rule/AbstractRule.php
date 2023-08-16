@@ -9,6 +9,7 @@ use Sokil\Mysql\PartitionManager\ValueObject\RunAt;
 abstract class AbstractRule
 {
     public function __construct(
+        public readonly string $connectionName,
         public readonly string $tableName,
         public readonly RunAt $runAt
     ) {

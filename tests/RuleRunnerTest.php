@@ -20,20 +20,20 @@ class RuleRunnerTest extends AbstractTestCase
 
     public function setUp(): void
     {
-        $connection = $this->getConnection();
+        $connection = $this->getConnectionRegistry()->getConnection('default');
         $fixtureLoader = new RotateFixtureLoader($connection);
 
-        $this->dropTable(self::TABLE1_NAME);
+        $this->dropTable('default', self::TABLE1_NAME);
         $fixtureLoader->load(self::TABLE1_NAME);
 
-        $this->dropTable(self::TABLE2_NAME);
+        $this->dropTable('default', self::TABLE2_NAME);
         $fixtureLoader->load(self::TABLE2_NAME);
     }
 
     public function tearDown(): void
     {
-        $this->dropTable(self::TABLE1_NAME);
-        $this->dropTable(self::TABLE2_NAME);
+        $this->dropTable('default', self::TABLE1_NAME);
+        $this->dropTable('default', self::TABLE2_NAME);
     }
 
     /**
@@ -44,8 +44,7 @@ class RuleRunnerTest extends AbstractTestCase
         array $rules,
         array $tableNameToExpectedRemainedPartitionsMap
     ): void {
-        $connection = $this->getConnection();
-        $partitionsManipulator = new PartitionManager($connection);
+        $partitionsManipulator = new PartitionManager($this->getConnectionRegistry());
 
         $clock = $this->createMock(ClockInterface::class);
         $clock->method('now')->willReturn($currentDateTime);
@@ -68,7 +67,7 @@ class RuleRunnerTest extends AbstractTestCase
         foreach ($tableNameToExpectedRemainedPartitionsMap as $tableName => $expectedRemainedPartitions) {
             $partitionsName = [];
 
-            $partitions = $partitionsManipulator->getPartitions($tableName);
+            $partitions = $partitionsManipulator->getPartitions('default', $tableName);
 
             foreach ($partitions as $partition) {
                 $partitionsName[] = $partition->name;
@@ -88,6 +87,7 @@ class RuleRunnerTest extends AbstractTestCase
                 'currentDateTime' => new \DateTimeImmutable('2023-05-01 05:00:00'),
                 'rules' => [
                     new RotateRule(
+                        'default',
                         self::TABLE1_NAME,
                         new RunAt('2023-05-01 05:00:00'),
                         RotateRange::Months,
@@ -115,6 +115,7 @@ class RuleRunnerTest extends AbstractTestCase
                 'currentDateTime' => new \DateTimeImmutable('2023-05-01 05:00:00'),
                 'rules' => [
                     new RotateRule(
+                        'default',
                         self::TABLE2_NAME,
                         new RunAt('2023-05-01 05:00:00'),
                         RotateRange::Months,
@@ -142,6 +143,7 @@ class RuleRunnerTest extends AbstractTestCase
                 'currentDateTime' => new \DateTimeImmutable('2023-05-01 05:00:00'),
                 'rules' => [
                     new RotateRule(
+                        'default',
                         self::TABLE1_NAME,
                         new RunAt('2023-05-01 05:00:00'),
                         RotateRange::Months,
@@ -149,6 +151,7 @@ class RuleRunnerTest extends AbstractTestCase
                         2,
                     ),
                     new RotateRule(
+                        'default',
                         self::TABLE2_NAME,
                         new RunAt('2023-05-01 05:00:00'),
                         RotateRange::Months,
@@ -189,6 +192,7 @@ class RuleRunnerTest extends AbstractTestCase
                 'currentDateTime' => new \DateTimeImmutable('2023-05-01 05:00:00'),
                 'rules' => [
                     new RotateRule(
+                        'default',
                         self::TABLE2_NAME,
                         new RunAt('2024-05-01 06:00:00'),
                         RotateRange::Months,
@@ -202,6 +206,7 @@ class RuleRunnerTest extends AbstractTestCase
                 'currentDateTime' => new \DateTimeImmutable('2023-05-01 05:00:00'),
                 'rules' => [
                     new RotateRule(
+                        'default',
                         self::TABLE1_NAME,
                         new RunAt('2023-05-01 05:00:00'),
                         RotateRange::Months,
@@ -209,6 +214,7 @@ class RuleRunnerTest extends AbstractTestCase
                         2,
                     ),
                     new RotateRule(
+                        'default',
                         self::TABLE2_NAME,
                         new RunAt('2024-05-01 06:00:00'),
                         RotateRange::Months,

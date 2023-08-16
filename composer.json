@@ -11,11 +11,13 @@
         "phpunit/phpunit": "^10.3.1",
         "vimeo/psalm": "^5.14.1",
         "squizlabs/php_codesniffer": "*",
-        "doctrine/dbal": "^3.6"
+        "doctrine/dbal": "^3.6",
+        "doctrine/persistence": "^3.2"
     },
     "suggest": {
         "ext-pdo": "For support of PDO connections to MySql",
-        "doctrine/dbal": "For support of Doctrine DBAL connections to MySql"
+        "doctrine/dbal": "For support of Doctrine DBAL connections to MySql",
+        "doctrine/persistence": "For support of Doctrine DBAL connections to MySql"
     },
     "autoload": {
         "psr-4": {

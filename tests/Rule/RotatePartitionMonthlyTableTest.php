@@ -21,7 +21,7 @@ class RotatePartitionMonthlyTableTest extends AbstractTestCase
 
     public function setUp(): void
     {
-        $connection = $this->getConnection();
+        $connection = $this->getConnectionRegistry()->getConnection('default');
         $fixtureLoader = new RotateFixtureLoader($connection);
 
         $fixtureLoader->load($this->tableName);
@@ -29,7 +29,7 @@ class RotatePartitionMonthlyTableTest extends AbstractTestCase
 
     public function tearDown(): void
     {
-        $this->dropTable($this->tableName);
+        $this->dropTable('default', $this->tableName);
     }
 
     /**
@@ -43,10 +43,10 @@ class RotatePartitionMonthlyTableTest extends AbstractTestCase
         int $expectCreated,
         int $expectDeleted
     ): void {
-        $connection = $this->getConnection();
         $runAt = new RunAt($currentDate->format('Y-m-d H:i:s'));
 
         $rule = new RotateRule(
+            'default',
             $this->tableName,
             $runAt,
             RotateRange::Months,
@@ -54,7 +54,7 @@ class RotatePartitionMonthlyTableTest extends AbstractTestCase
             $createPartitionsCount
         );
 
-        $partitionManager = new PartitionManager($connection);
+        $partitionManager = new PartitionManager($this->getConnectionRegistry());
 
         $clock = $this->createMock(ClockInterface::class);
         $clock->method('now')->willReturn($currentDate);
@@ -80,7 +80,7 @@ class RotatePartitionMonthlyTableTest extends AbstractTestCase
 
         $actualPartitionNames = array_map(
             fn (Partition $partition) => $partition->name,
-            $partitionManager->getPartitions($this->tableName)
+            $partitionManager->getPartitions($rule->connectionName, $rule->tableName)
         );
 
         sort($actualPartitionNames);

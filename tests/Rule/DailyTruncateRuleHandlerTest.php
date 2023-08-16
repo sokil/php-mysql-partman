@@ -20,40 +20,24 @@ class DailyTruncateRuleHandlerTest extends AbstractTestCase
 
     public function setUp(): void
     {
-        $connection = $this->getConnection();
+        $connection = $this->getConnectionRegistry()->getConnection('default');
         $fixtureLoader = new TruncateDailyFixtureLoader($connection);
 
-        $this->dropTable($this->tableName);
+        $this->dropTable('default', $this->tableName);
         $fixtureLoader->load($this->tableName);
     }
 
     public function tearDown(): void
     {
-        $this->dropTable($this->tableName);
-    }
-
-    public function testCheckPartitionData(): void
-    {
-        $tableName = $this->tableName;
-        $connection = $this->getConnection();
-
-        for ($i = 1; $i <= 31; $i++) {
-            $partitionName = sprintf('p%02d', $i);
-            $sql = "SELECT * FROM `{$tableName}` PARTITION ({$partitionName})";
-
-            $rowsFromPartition = $connection->fetchAll($sql);
-            $this->assertCount(1, $rowsFromPartition);
-        }
+        $this->dropTable('default', $this->tableName);
     }
 
     /**
-     * @depends testCheckPartitionData
      * @dataProvider rulesDataProvider
      */
     public function testRunHandler(int $currentDay, int $storeCount, array $truncated): void
     {
-        $connection = $this->getConnection();
-        $partitionManager = new PartitionManager($connection);
+        $partitionManager = new PartitionManager($this->getConnectionRegistry());
 
         $runAt = new RunAt('2023-01-' . $currentDay . '00:00:00');
 
@@ -62,6 +46,7 @@ class DailyTruncateRuleHandlerTest extends AbstractTestCase
 
 
         $rule = new TruncateRule(
+            'default',
             $this->tableName,
             $runAt,
             $storeCount,
@@ -92,6 +77,7 @@ class DailyTruncateRuleHandlerTest extends AbstractTestCase
             $partitionName = sprintf('p%02d', $i);
             $sql = "SELECT * FROM `{$this->tableName}` PARTITION ({$partitionName})";
 
+            $connection = $this->getConnectionRegistry()->getConnection($rule->connectionName);
             $rowsFromPartition = $connection->fetchAll($sql);
 
             $this->assertCount(

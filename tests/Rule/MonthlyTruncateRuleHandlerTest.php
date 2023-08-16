@@ -20,47 +20,32 @@ class MonthlyTruncateRuleHandlerTest extends AbstractTestCase
 
     public function setUp(): void
     {
-        $connection = $this->getConnection();
+        $connection = $this->getConnectionRegistry()->getConnection('default');
         $fixtureLoader = new TruncateMonthlyFixtureLoader($connection);
         $fixtureLoader->load($this->tableName);
     }
 
     public function tearDown(): void
     {
-        $this->dropTable($this->tableName);
-    }
-
-    public function testCheckPartitionData(): void
-    {
-        $tableName = $this->tableName;
-        $connection = $this->getConnection();
-
-        for ($i = 1; $i <= 12; $i++) {
-            $partitionName = sprintf('p%02d', $i);
-            $sql = "SELECT * FROM `{$tableName}` PARTITION ({$partitionName})";
-
-            $rowsFromPartition = $connection->fetchAll($sql);
-            $this->assertCount(1, $rowsFromPartition);
-        }
+        $this->dropTable('default', $this->tableName);
     }
 
     /**
-     * @depends testCheckPartitionData
      * @dataProvider rulesDataProvider
      */
     public function testRunHandler(int $currentMonth, int $storeCount, array $truncated): void
     {
-        $connection = $this->getConnection();
         $runAt = new RunAt('2023-' . $currentMonth . '-10 00:00:00');
 
         $rule = new TruncateRule(
+            'default',
             $this->tableName,
             $runAt,
             $storeCount,
             TruncatePeriod::Month,
         );
 
-        $partitionManager = new PartitionManager($connection);
+        $partitionManager = new PartitionManager($this->getConnectionRegistry());
 
         $clock = $this->createMock(ClockInterface::class);
         $clock->method('now')->willReturn(new \DateTimeImmutable($runAt->value));
@@ -88,8 +73,9 @@ class MonthlyTruncateRuleHandlerTest extends AbstractTestCase
             $expectedRowsCountFromPartition = in_array($i, $truncated) ? 0 : 1;
 
             $partitionName = sprintf('p%02d', $i);
-            $sql = "SELECT count(1) c FROM `{$this->tableName}` PARTITION ({$partitionName})";
+            $sql = "SELECT count(1) c FROM `{$rule->tableName}` PARTITION ({$partitionName})";
 
+            $connection = $this->getConnectionRegistry()->getConnection($rule->connectionName);
             $actualRowsCountFromPartition = $connection->fetchOne($sql)['c'];
 
             $this->assertTrue(

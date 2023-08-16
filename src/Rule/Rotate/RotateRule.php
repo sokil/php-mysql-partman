@@ -11,13 +11,18 @@ use Sokil\Mysql\PartitionManager\ValueObject\RunAt;
 class RotateRule extends AbstractRule
 {
     public function __construct(
+        string $connectionName,
         string $tableName,
         RunAt $runAt,
         public readonly RotateRange $range,
         public readonly int $remainPartitionsCount,
         public readonly int $createPartitionsCount,
     ) {
-        parent::__construct($tableName, $runAt);
+        parent::__construct(
+            $connectionName,
+            $tableName,
+            $runAt
+        );
 
         if ($remainPartitionsCount <= 0) {
             throw new \InvalidArgumentException('Remain partitions count must be positive integer');

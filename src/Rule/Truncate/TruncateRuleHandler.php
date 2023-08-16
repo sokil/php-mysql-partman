@@ -33,7 +33,7 @@ class TruncateRuleHandler implements RuleHandlerInterface
         $partitionsToRemain = [];
         $partitionsToTruncate = [];
 
-        $partitions = $this->partitionManager->getPartitions($rule->tableName);
+        $partitions = $this->partitionManager->getPartitions($rule->connectionName, $rule->tableName);
 
         $period = match ($rule->truncatePeriod) {
             TruncatePeriod::Month => new \DatePeriod(
@@ -75,7 +75,7 @@ class TruncateRuleHandler implements RuleHandlerInterface
 
         $affectedCount = 0;
         foreach ($partitionsToTruncate as $partitionToTruncate) {
-            $this->partitionManager->truncate($rule->tableName, $partitionToTruncate);
+            $this->partitionManager->truncate($rule->connectionName, $rule->tableName, $partitionToTruncate);
             $affectedCount++;
         }
 

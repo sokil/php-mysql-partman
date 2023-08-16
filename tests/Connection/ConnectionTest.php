@@ -22,7 +22,7 @@ class ConnectionTest extends AbstractTestCase
      */
     public function testExecuteError(string $driver)
     {
-        $connection = $this->getConnection($driver);
+        $connection = $this->getConnectionRegistry($driver)->getConnection('default');
 
         $this->expectException(ConnectionException::class);
         $connection->execute('drop table ' . uniqid());
@@ -33,7 +33,7 @@ class ConnectionTest extends AbstractTestCase
      */
     public function testFetchOne(string $driver)
     {
-        $connection = $this->getConnection($driver);
+        $connection = $this->getConnectionRegistry($driver)->getConnection('default');
         $tableName = 'connection_test_' . uniqid();
 
         try {
@@ -57,7 +57,7 @@ class ConnectionTest extends AbstractTestCase
      */
     public function testFetchAll(string $driver)
     {
-        $connection = $this->getConnection($driver);
+        $connection = $this->getConnectionRegistry($driver)->getConnection('default');
         $tableName = 'connection_test_' . uniqid();
 
         try {

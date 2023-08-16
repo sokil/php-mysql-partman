@@ -11,12 +11,13 @@ use Sokil\Mysql\PartitionManager\ValueObject\TruncatePeriod;
 class TruncateRule extends AbstractRule
 {
     public function __construct(
+        string $connectionName,
         string $tableName,
         RunAt $runAt,
         public readonly int $remainPartitionsCount,
         public readonly TruncatePeriod $truncatePeriod,
     ) {
-        parent::__construct($tableName, $runAt);
+        parent::__construct($connectionName, $tableName, $runAt);
 
         if ($this->remainPartitionsCount <= 0) {
             throw new \InvalidArgumentException('Store count must be positive int');

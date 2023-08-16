@@ -26,7 +26,7 @@ class RotateRuleHandler implements RuleHandlerInterface
         $minPartitionsDateTime = $now->modify("-{$rule->remainPartitionsCount} {$rule->range->value} midnight");
         $maxPartitionsDateTime = $now->modify("+{$rule->createPartitionsCount} {$rule->range->value} midnight");
 
-        $existingPartitions = $this->partitionManager->getPartitions($rule->tableName);
+        $existingPartitions = $this->partitionManager->getPartitions($rule->connectionName, $rule->tableName);
 
         if (count($existingPartitions) === 0) {
             throw new \Exception('Partitions not found for table ' . $rule->tableName);
@@ -75,8 +75,17 @@ class RotateRuleHandler implements RuleHandlerInterface
             );
         }
 
-        $addedPartitions = $this->partitionManager->addPartitions($rule->tableName, $partitionsToAdd);
-        $deletedPartitions = $this->partitionManager->dropPartitions($rule->tableName, $partitionsToDrop);
+        $addedPartitions = $this->partitionManager->addPartitions(
+            $rule->connectionName,
+            $rule->tableName,
+            $partitionsToAdd,
+        );
+
+        $deletedPartitions = $this->partitionManager->dropPartitions(
+            $rule->connectionName,
+            $rule->tableName,
+            $partitionsToDrop,
+        );
 
         return new RuleHandleResult(
             $rule,
